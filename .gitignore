@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+crash.log
+
+# Local environment and secrets
+.env
+*.pem
+*.key
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Keep the screenshots directory in Git before screenshots are added.
+screenshots/*
+!screenshots/.gitkeep
