@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MedCare Ubuntu Operations Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">MedCare Health Services</p>
+          <h1>Ubuntu Operations Dashboard</h1>
+          <p class="summary">Central visibility for server health, resource usage, service state, log growth, and support readiness.</p>
+        </div>
+        <div class="status-card {{ model.overall_status }}">
+          <span>Overall Status</span>
+          <strong>{{ model.overall_status|title }}</strong>
+        </div>
+      </section>
+
+      <section class="system-strip">
+        <div>
+          <span>Host</span>
+          <strong>{{ model.hostname }}</strong>
+        </div>
+        <div>
+          <span>Last Check</span>
+          <strong>{{ model.timestamp }}</strong>
+        </div>
+        <div>
+          <span>Load Average</span>
+          <strong>{{ model.load_average }}</strong>
+        </div>
+      </section>
+
+      <section class="metrics-grid" aria-label="System metrics">
+        {% for metric in model.metrics %}
+        <article class="metric {{ metric.status }}">
+          <div class="metric-top">
+            <span>{{ metric.name }}</span>
+            <strong>{{ "%.1f"|format(metric.value) }}{{ metric.unit }}</strong>
+          </div>
+          <div class="bar" aria-hidden="true">
+            <span style="width: {{ metric.value }}%"></span>
+          </div>
+          <small>{{ metric.status|title }}</small>
+        </article>
+        {% endfor %}
+      </section>
+
+      <section class="ops-grid">
+        <article>
+          <h2>Service Health</h2>
+          <div class="service-list">
+            {% for name, state in model.services.items() %}
+            <div class="service-row">
+              <span>{{ name }}</span>
+              <strong class="{{ 'ok' if state == 'running' else 'bad' }}">{{ state }}</strong>
+            </div>
+            {% else %}
+            <p class="empty">Waiting for the Ubuntu health agent to report service data.</p>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article>
+          <h2>Operations Coverage</h2>
+          <ul class="coverage-list">
+            <li>CloudWatch metrics and alarms</li>
+            <li>SNS email alert routing</li>
+            <li>Automated log retention</li>
+            <li>Daily health report source data</li>
+            <li>Dockerized dashboard runtime</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

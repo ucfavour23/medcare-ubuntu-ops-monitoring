@@ -1,63 +1,52 @@
 variable "aws_region" {
-  description = "AWS region where the MedCare platform will be deployed."
+  description = "AWS region for all resources."
   type        = string
   default     = "us-east-1"
 }
 
 variable "project_name" {
-  description = "Name used to tag AWS resources."
+  description = "Name used for resource naming."
   type        = string
-  default     = "medcare-ubuntu-ops-monitoring"
+  default     = "medcare-ubuntu-ops"
+}
+
+variable "environment" {
+  description = "Deployment environment."
+  type        = string
+  default     = "portfolio"
 }
 
 variable "instance_type" {
-  description = "Free-tier friendly EC2 instance type."
+  description = "Low-cost EC2 instance type."
   type        = string
-  default     = "t2.micro"
-
-  validation {
-    condition     = contains(["t2.micro", "t3.micro"], var.instance_type)
-    error_message = "Use t2.micro or t3.micro to keep this demonstration free-tier friendly where eligible."
-  }
+  default     = "t3.micro"
 }
 
 variable "key_name" {
-  description = "Existing EC2 key pair name used for SSH access."
+  description = "Optional existing EC2 key pair name for SSH access."
   type        = string
   default     = null
 }
 
-variable "ssh_allowed_cidr" {
-  description = "CIDR allowed to connect over SSH. Replace with your public IP/32."
+variable "ssh_cidr" {
+  description = "CIDR block allowed to SSH. Replace with your public IP /32."
   type        = string
   default     = "0.0.0.0/0"
-}
-
-variable "http_allowed_cidr" {
-  description = "CIDR allowed to view the HTTP dashboard."
-  type        = string
-  default     = "0.0.0.0/0"
-}
-
-variable "sns_topic_name" {
-  description = "Name of the SNS topic used by CloudWatch alarms."
-  type        = string
-  default     = "medcare-operations-alerts"
 }
 
 variable "alert_email" {
-  description = "Optional email address subscribed to alerts. Confirmation is required."
+  description = "Email address that receives SNS alerts."
   type        = string
-  default     = ""
-
-  validation {
-    condition     = var.alert_email == "" || can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
-    error_message = "alert_email must be empty or a valid email address."
-  }
 }
 
-variable "github_repository_url" {
-  description = "Optional public Git repository URL. When set, user data clones and starts the dashboard."
+variable "app_port" {
+  description = "Dashboard application port."
+  type        = number
+  default     = 5000
+}
+
+variable "repository_url" {
+  description = "Public GitHub repository URL used by EC2 user data to install the monitoring app."
   type        = string
-  default     = ""
+  default     = "https://github.com/ucfavour23/medcare-ubuntu-ops-monitoring.git"
 }

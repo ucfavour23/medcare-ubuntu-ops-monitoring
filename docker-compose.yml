@@ -1,0 +1,9 @@
+services:
+  medcare-dashboard:
+    build: .
+    container_name: medcare-dashboard
+    ports:
+      - "5000:5000"
+    environment:
+      HEALTH_DATA_PATH: /app/data/sample-health.json
+    restart: unless-stopped

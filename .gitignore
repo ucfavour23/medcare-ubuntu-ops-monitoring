@@ -1,28 +1,26 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-
-# Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
-*.tfplan
-terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
 crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# Local environment and secrets
+__pycache__/
+*.py[cod]
+.pytest_cache/
+pytest-cache-files-*/
+.venv/
+venv/
 .env
-*.pem
-*.key
 
-# Editor and operating system files
-.vscode/
-.idea/
+*.log
+reports/
+app/data/*.json
+!app/data/.gitkeep
+
 .DS_Store
 Thumbs.db
-
-# Keep the screenshots directory in Git before screenshots are added.
-screenshots/*
-!screenshots/.gitkeep

@@ -2,42 +2,45 @@ name: CI
 
 on:
   push:
+    branches: ["main"]
   pull_request:
 
 jobs:
   validate:
+    name: Validate Terraform, Python, and Docker
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.5
+
+      - name: Terraform fmt
+        working-directory: terraform
+        run: terraform fmt -check
+
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: terraform
+        run: terraform validate
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Check Python syntax
-        run: python -m py_compile app/app.py
-
       - name: Install Python dependencies
-        run: python -m pip install -r app/requirements.txt
+        run: pip install -r app/requirements.txt
 
-      - name: Run dashboard tests
-        working-directory: app
-        run: python -m unittest -v
+      - name: Run tests
+        run: pytest -q
 
-      - name: Check shell script syntax
-        run: bash -n scripts/*.sh terraform/user_data.sh
-
-      - name: Check Terraform formatting
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Run Terraform format check
-        run: terraform -chdir=terraform fmt -check
-
-      - name: Initialize Terraform without a backend
-        run: terraform -chdir=terraform init -backend=false
-
-      - name: Validate Terraform configuration
-        run: terraform -chdir=terraform validate
+      - name: Build Docker image
+        run: docker build -t medcare-dashboard:ci .

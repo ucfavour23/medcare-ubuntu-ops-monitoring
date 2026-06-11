@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# Remove old compressed and rotated logs without touching active log files.
-
 set -euo pipefail
 
-LOG_DIR="${1:-/var/log}"
-RETENTION_DAYS="${2:-14}"
+LOG_DIR="${LOG_DIR:-/var/log/medcare-monitoring}"
+REPORT_DIR="${REPORT_DIR:-/var/reports/medcare-monitoring}"
+RETENTION_DAYS="${RETENTION_DAYS:-14}"
+TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
-if ! [[ "$RETENTION_DAYS" =~ ^[0-9]+$ ]]; then
-  echo "ERROR: Retention days must be a non-negative number."
-  exit 2
-fi
+mkdir -p "$LOG_DIR" "$REPORT_DIR"
 
-if [[ ! -d "$LOG_DIR" ]]; then
-  echo "ERROR: Log directory does not exist: $LOG_DIR"
-  exit 1
-fi
+find "$LOG_DIR" -type f -name "*.log" -mtime +"$RETENTION_DAYS" -print -delete \
+  >>"$LOG_DIR/cleanup.log" 2>&1 || true
 
-echo "Removing rotated logs older than ${RETENTION_DAYS} days from ${LOG_DIR}..."
-find "$LOG_DIR" -type f \( -name "*.gz" -o -name "*.log.*" \) -mtime "+${RETENTION_DAYS}" -print -delete
-echo "Log cleanup complete."
+find "$REPORT_DIR" -type f \( -name "*.txt" -o -name "*.json" \) -mtime +"$RETENTION_DAYS" -print -delete \
+  >>"$LOG_DIR/cleanup.log" 2>&1 || true
+
+echo "$TIMESTAMP cleanup_completed retention_days=$RETENTION_DAYS" >>"$LOG_DIR/cleanup.log"

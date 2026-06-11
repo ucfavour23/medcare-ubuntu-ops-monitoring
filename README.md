@@ -1,106 +1,132 @@
-# MediCare Ubuntu Operations & Monitoring Platform
+# MedCare Ubuntu Operations & Monitoring Platform
 
-A cloud engineering portfolio project that provisions an Ubuntu operations server on AWS and runs a lightweight monitoring dashboard with Terraform, Python, Gunicorn, systemd, CloudWatch, SNS, and GitHub Actions.
+Real-world cloud engineering portfolio project for **MedCare Health Services**, a healthcare company that needs better visibility into Ubuntu servers running internal applications.
+
+The platform provisions an Ubuntu EC2 instance, installs monitoring dependencies, collects Linux health data, sends CloudWatch alarms through SNS email, and exposes a Dockerized operations dashboard for support engineers.
+
+![Dashboard screenshot](docs/screenshots/dashboard-local.png)
 
 ## Business Problem
 
-MediCare Health Services depends on Ubuntu servers to support internal healthcare applications. The operations team needs a simple way to see server health, detect high resource usage, confirm key services are running, and receive alerts before server issues affect staff or patients.
+MedCare's operations team supports multiple Ubuntu servers but lacks a central view of:
 
-The organization also needs repeatable infrastructure setup. Manual server builds are slow, inconsistent, and difficult to review during audits or handovers.
+- CPU, memory, and disk usage
+- Service status for critical Linux services
+- Log growth and retention
+- CloudWatch alarms and email notifications
+- Daily server health evidence for support handovers
 
-## Solution Overview
+## Solution
 
-This project creates a free-tier friendly AWS monitoring environment:
-
-- Terraform provisions the EC2 instance, security group, SNS topic, email subscription, and CloudWatch CPU alarm.
-- EC2 user data installs Python dependencies and runs the Flask dashboard as a native systemd service.
-- The dashboard displays hostname, UTC time, uptime, CPU, memory, disk usage, and process health.
-- `/health` supports health checks and `/api/metrics` exposes JSON metrics for future automation.
-- Bash scripts provide command-line health checks, disk threshold checks, and safe rotated log cleanup.
-- GitHub Actions validates Python tests, shell syntax, Terraform formatting, and Terraform configuration.
+This project delivers a centralized Ubuntu Operations & Monitoring Platform using AWS, Terraform, Bash, Python, CloudWatch, SNS, Docker, and GitHub Actions.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Engineer[Cloud Engineer] -->|terraform apply| Terraform[Terraform]
-    Terraform --> AWS[AWS us-east-1]
-    AWS --> EC2[Ubuntu EC2 Instance]
-    User[Operations User] -->|HTTP 80| SG[Security Group]
-    Admin[Administrator] -->|SSH 22 restricted CIDR| SG
-    SG --> EC2
-    EC2 --> Systemd[systemd Service]
-    Systemd --> Gunicorn[Gunicorn]
-    Gunicorn --> Flask[Flask Monitoring Dashboard]
-    Flask --> Metrics[/api/metrics]
-    Flask --> Health[/health]
-    EC2 --> Scripts[Bash Operations Scripts]
-    EC2 --> CWMetric[EC2 CPUUtilization]
-    CWMetric --> Alarm[CloudWatch Alarm]
-    Alarm --> SNS[SNS Topic]
-    SNS --> Email[Email Notification]
+    Engineer[Cloud Engineer] --> GitHub[GitHub Repository]
+    GitHub --> Actions[GitHub Actions CI]
+    Engineer --> Terraform[Terraform IaC]
+    Terraform --> EC2[Ubuntu EC2 Server]
+    Terraform --> IAM[IAM Role]
+    Terraform --> SNS[SNS Email Topic]
+    Terraform --> CW[CloudWatch Alarms]
+    EC2 --> Agent[CloudWatch Agent]
+    EC2 --> Bash[Bash Health Checks]
+    Bash --> Logs[/Health Logs and Reports/]
+    Logs --> Dashboard[Flask Operations Dashboard]
+    Agent --> CW
+    CW --> SNS
+    SNS --> Email[Ops Email Alerts]
 ```
 
-For a Draw.io-ready diagram brief, see [docs/architecture-diagram-drawio.md](docs/architecture-diagram-drawio.md).
+## Features
 
-## Technologies Used
+- Terraform infrastructure deployment
+- Ubuntu EC2 server provisioning
+- IAM role for SSM and CloudWatch Agent
+- CPU, memory, disk, and EC2 status alarms
+- SNS email alerts
+- Bash-based health checks
+- Automated log cleanup
+- Daily report-ready JSON output
+- Flask operations dashboard
+- Dockerized dashboard runtime
+- GitHub Actions CI for Terraform, Python tests, and Docker build
 
-| Area | Technologies |
+## Technology Stack
+
+| Area | Tools |
 | --- | --- |
-| Cloud | AWS EC2, Security Groups, CloudWatch, SNS |
-| Infrastructure as Code | Terraform |
-| Operating System | Ubuntu 22.04 LTS |
-| Application | Python 3, Flask, psutil, Gunicorn |
-| Service Management | systemd |
-| Operations Automation | Bash |
-| CI/CD Validation | GitHub Actions |
+| Cloud | AWS EC2, IAM, CloudWatch, SNS |
+| Infrastructure | Terraform |
+| Operating System | Ubuntu Server |
+| Automation | Bash, cron |
+| Application | Python, Flask, Gunicorn |
+| Containers | Docker, Docker Compose |
+| CI/CD | GitHub Actions |
+| Version Control | Git, GitHub |
 
 ## Repository Structure
 
 ```text
-app/                 Flask dashboard, tests, requirements
-scripts/             Ubuntu health, disk, and log cleanup scripts
-terraform/           AWS infrastructure, user data, tfvars example
-docs/                Deployment, troubleshooting, reviews, checklist, diagram brief
-architecture/        Architecture notes
-screenshots/         Portfolio screenshots
-.github/workflows/   CI validation workflow
+.
+├── app/                    # Flask monitoring dashboard
+├── docs/                   # Architecture, deployment, screenshots, runbooks
+├── scripts/                # Ubuntu health checks, cleanup, install, deploy
+├── terraform/              # AWS infrastructure as code
+├── tests/                  # Python tests
+├── .github/workflows/      # CI pipeline
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
 ```
 
-## Deployment Steps
+## Local Dashboard Demo
 
-### 1. Prerequisites
-
-- AWS account with permission to create EC2, Security Group, CloudWatch, and SNS resources
-- Terraform 1.5 or later
-- AWS credentials configured locally through the AWS CLI, environment variables, or an AWS profile
-- Existing EC2 key pair if SSH access is required
-- Public GitHub repository URL for automatic EC2 bootstrap deployment
-
-### 2. Configure Variables
-
-Copy the example file and edit the values:
+Run the dashboard locally with sample data:
 
 ```bash
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+python -m venv .venv
+source .venv/bin/activate
+pip install -r app/requirements.txt
+cd app
+python app.py
 ```
 
-Example:
+Open:
 
-```hcl
-key_name              = "your-existing-key-pair"
-ssh_allowed_cidr      = "203.0.113.10/32"
-http_allowed_cidr     = "0.0.0.0/0"
-alert_email           = "operations@example.com"
-github_repository_url = "https://github.com/your-user/medcare-ubuntu-ops-monitoring.git"
+```text
+http://localhost:5000
 ```
 
-Do not commit `terraform.tfvars`, AWS keys, private keys, account IDs, or patient data.
+Or run with Docker:
 
-### 3. Deploy Infrastructure
+```bash
+docker compose up --build
+```
+
+## AWS Deployment
+
+1. Copy the Terraform example variables:
 
 ```bash
 cd terraform
+cp terraform.tfvars.example terraform.tfvars
+```
+
+2. Edit `terraform.tfvars`:
+
+```hcl
+aws_region  = "us-east-1"
+alert_email = "your-email@example.com"
+key_name    = "your-existing-keypair-name"
+ssh_cidr    = "YOUR_PUBLIC_IP/32"
+```
+
+3. Deploy infrastructure:
+
+```bash
 terraform init
 terraform fmt
 terraform validate
@@ -108,73 +134,59 @@ terraform plan
 terraform apply
 ```
 
-After deployment, confirm the SNS email subscription if `alert_email` was configured.
+4. Confirm the SNS subscription email from AWS.
 
-### 4. Open the Dashboard
+5. Deploy the app and scripts to EC2:
 
 ```bash
-terraform output -raw dashboard_url
+./scripts/deploy_to_ec2.sh <EC2_PUBLIC_IP> <PATH_TO_PRIVATE_KEY.pem>
 ```
 
-Endpoints:
+6. Open the dashboard URL from Terraform output.
 
-- `/` - monitoring dashboard
-- `/health` - health check endpoint
-- `/api/metrics` - JSON metrics endpoint
+## Validation
 
-### 5. Run Local App Tests
+Run local checks:
 
 ```bash
-cd app
-python -m pip install -r requirements.txt
-python -m unittest -v
+pytest -q
+terraform -chdir=terraform fmt -check
+terraform -chdir=terraform init -backend=false
+terraform -chdir=terraform validate
+docker build -t medcare-dashboard:local .
 ```
 
-### 6. Run Operations Scripts on Ubuntu
+## Cost Control
+
+This project is designed for low-cost portfolio use:
+
+- Use `t3.micro` where free tier or low-cost eligible.
+- Keep one EC2 instance only.
+- Destroy resources when not testing:
 
 ```bash
-chmod +x scripts/*.sh
-sudo ./scripts/health_check.sh
-sudo ./scripts/disk_check.sh 80
-sudo ./scripts/log_cleanup.sh /var/log 14
-```
-
-### 7. Cleanup
-
-```bash
-cd terraform
 terraform destroy
 ```
 
-Review the destroy plan before confirming.
+## Screenshots To Add
 
-## Screenshots
+Add these screenshots to `docs/screenshots/`:
 
-Add sanitized screenshots to `screenshots/` before publishing the portfolio repository:
+- `dashboard-local.png`
+- `terraform-apply.png`
+- `cloudwatch-alarms.png`
+- `sns-email-confirmation.png`
+- `github-actions-ci.png`
 
-- `dashboard-overview.png` - browser view of the monitoring dashboard
-- `health-endpoint.png` - `/health` response
-- `metrics-endpoint.png` - `/api/metrics` response
-- `terraform-apply.png` - successful Terraform apply output with sensitive values hidden
-- `cloudwatch-alarm.png` - CloudWatch alarm configuration
-- `sns-subscription.png` - confirmed SNS subscription with email redacted
-- `github-actions-success.png` - successful CI workflow run
+## Interview Talking Points
+
+- How Terraform provisions repeatable AWS infrastructure
+- Why CloudWatch Agent is needed for memory and disk metrics
+- How SNS turns CloudWatch alarms into email alerts
+- How Bash scripts support Linux operations workflows
+- How Docker makes the dashboard portable
+- How GitHub Actions validates infrastructure and application changes
 
 ## Skills Demonstrated
 
-- Cloud infrastructure provisioning with Terraform
-- AWS EC2, security group, CloudWatch, and SNS configuration
-- Linux server administration on Ubuntu
-- Python Flask application development
-- System metrics collection with psutil
-- Native Linux service deployment with systemd
-- Bash scripting for operational checks and maintenance
-- CI validation with GitHub Actions
-- Security-minded documentation and secret hygiene
-- Portfolio-ready architecture and deployment communication
-
-## Production Readiness Notes
-
-This project is suitable for a cloud portfolio demonstration. Before real healthcare production use, add HTTPS, authentication, private networking, centralized logs, backup and patching procedures, least-privilege IAM, compliance controls, and a formal incident response process.
-
-See [docs/production-readiness-review.md](docs/production-readiness-review.md) and [docs/project-completion-checklist.md](docs/project-completion-checklist.md) for the final review items.
+Linux administration, Ubuntu operations, AWS infrastructure, monitoring, alerting, Bash automation, Python backend development, Docker, Terraform, CI/CD, and production-style documentation.

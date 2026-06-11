@@ -1,24 +1,24 @@
 output "instance_id" {
   description = "EC2 instance ID."
-  value       = aws_instance.medcare.id
+  value       = aws_instance.ubuntu_ops.id
 }
 
 output "public_ip" {
   description = "Public IP address of the Ubuntu server."
-  value       = aws_instance.medcare.public_ip
-}
-
-output "dashboard_url" {
-  description = "HTTP URL for the MedCare monitoring dashboard."
-  value       = "http://${aws_instance.medcare.public_ip}"
+  value       = aws_instance.ubuntu_ops.public_ip
 }
 
 output "ssh_command" {
-  description = "Example SSH command when a key pair is configured."
-  value       = var.key_name == null ? "No key_name configured" : "ssh -i <private-key.pem> ubuntu@${aws_instance.medcare.public_ip}"
+  description = "SSH command if key_name was provided."
+  value       = var.key_name == null ? "Use AWS Systems Manager Session Manager or set key_name." : "ssh -i <your-key.pem> ubuntu@${aws_instance.ubuntu_ops.public_ip}"
+}
+
+output "dashboard_url" {
+  description = "Monitoring dashboard URL."
+  value       = "http://${aws_instance.ubuntu_ops.public_ip}:${var.app_port}"
 }
 
 output "sns_topic_arn" {
-  description = "SNS topic ARN used by the CloudWatch alarm."
-  value       = aws_sns_topic.operations_alerts.arn
+  description = "SNS topic used by alarms."
+  value       = aws_sns_topic.alerts.arn
 }
