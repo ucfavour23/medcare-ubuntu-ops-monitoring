@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ucfavour23/medcare-ubuntu-ops-monitoring/actions/workflows/ci.yml/badge.svg)](https://github.com/ucfavour23/medcare-ubuntu-ops-monitoring/actions/workflows/ci.yml)
 
-Real-world cloud engineering portfolio project for **MedCare Health Services**, a healthcare company that needs better visibility into Ubuntu servers running internal applications.
+MedCare Ubuntu Operations & Monitoring Platform provides health visibility, alerting, and operational evidence for Ubuntu servers that support internal healthcare applications.
 
 The platform provisions an Ubuntu EC2 instance, installs monitoring dependencies, collects Linux health data, sends CloudWatch alarms through SNS email, and exposes a Dockerized operations dashboard for support engineers.
 
@@ -20,26 +20,60 @@ MedCare's operations team supports multiple Ubuntu servers but lacks a central v
 
 ## Solution
 
-This project delivers a centralized Ubuntu Operations & Monitoring Platform using AWS, Terraform, Bash, Python, CloudWatch, SNS, Docker, and GitHub Actions.
+The platform combines AWS infrastructure, Linux automation, CloudWatch monitoring, SNS alerting, a Flask dashboard, Docker packaging, and CI validation into one repeatable operations workflow.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-    Engineer[Cloud Engineer] --> GitHub[GitHub Repository]
-    GitHub --> Actions[GitHub Actions CI]
-    Engineer --> Terraform[Terraform IaC]
-    Terraform --> EC2[Ubuntu EC2 Server]
-    Terraform --> IAM[IAM Role]
-    Terraform --> SNS[SNS Email Topic]
-    Terraform --> CW[CloudWatch Alarms]
-    EC2 --> Agent[CloudWatch Agent]
-    EC2 --> Bash[Bash Health Checks]
-    Bash --> Logs[/Health Logs and Reports/]
-    Logs --> Dashboard[Flask Operations Dashboard]
-    Agent --> CW
-    CW --> SNS
-    SNS --> Email[Ops Email Alerts]
+flowchart TD
+    engineer["Cloud operations engineer"]
+
+    subgraph source["Source control and validation"]
+        repo["GitHub repository"]
+        ci["GitHub Actions: tests, Terraform validation, Docker build"]
+    end
+
+    subgraph provisioning["Infrastructure provisioning"]
+        tf["Terraform"]
+        ec2["Ubuntu EC2 instance"]
+        iam["IAM instance role: SSM and CloudWatch permissions"]
+        sg["Security group: SSH, HTTP, HTTPS"]
+        sns["SNS email topic"]
+    end
+
+    subgraph runtime["Server runtime"]
+        cwa["CloudWatch Agent"]
+        scripts["Bash health checks: cron and log cleanup"]
+        logs["Health JSON and log files"]
+        app["Flask operations dashboard: Gunicorn service"]
+        caddy["Caddy reverse proxy: optional HTTPS"]
+    end
+
+    subgraph monitoring["Monitoring and alerting"]
+        metrics["CloudWatch metrics"]
+        alarms["CloudWatch alarms: CPU, memory, disk, status checks"]
+        email["Operations email alerts"]
+    end
+
+    engineer --> repo
+    repo --> ci
+    engineer --> tf
+    tf --> ec2
+    tf --> iam
+    tf --> sg
+    tf --> sns
+    tf --> alarms
+    iam --> ec2
+    sg --> ec2
+    ec2 --> cwa
+    ec2 --> scripts
+    scripts --> logs
+    logs --> app
+    caddy --> app
+    cwa --> metrics
+    metrics --> alarms
+    alarms --> sns
+    sns --> email
 ```
 
 ## Features
@@ -125,7 +159,7 @@ alert_email   = "your-email@example.com"
 key_name      = "your-existing-keypair-name"
 ssh_cidr      = "YOUR_PUBLIC_IP/32"
 
-# Optional but recommended for a recruiter-facing live demo.
+# Optional for a secure public dashboard.
 dashboard_domain   = "ops.example.com"
 certificate_email = "your-email@example.com"
 ```
@@ -201,7 +235,7 @@ See [project completion notes](docs/project-completion.md) for the final verific
 
 ## Cost Control
 
-This project is designed for low-cost portfolio use:
+This deployment is intentionally small, but AWS resources can still create charges:
 
 - Use `t3.micro` where free tier or low-cost eligible.
 - Keep one EC2 instance only.
@@ -210,15 +244,6 @@ This project is designed for low-cost portfolio use:
 ```bash
 terraform destroy
 ```
-
-## Interview Talking Points
-
-- How Terraform provisions repeatable AWS infrastructure
-- Why CloudWatch Agent is needed for memory and disk metrics
-- How SNS turns CloudWatch alarms into email alerts
-- How Bash scripts support Linux operations workflows
-- How Docker makes the dashboard portable
-- How GitHub Actions validates infrastructure and application changes
 
 ## Skills Demonstrated
 

@@ -11,7 +11,7 @@
 - Optional HTTPS deployment path with Caddy and Let's Encrypt
 - Docker image build
 - GitHub Actions CI workflow
-- Recruiter-facing README, architecture notes, deployment guide, runbook, and screenshots
+- README, architecture notes, deployment guide, runbook, and operational evidence screenshots
 
 ## Verified Locally
 

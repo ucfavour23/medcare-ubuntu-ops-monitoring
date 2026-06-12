@@ -30,4 +30,4 @@ The MedCare Ubuntu Operations & Monitoring Platform is built around one monitore
 - Replace `ssh_cidr` with your own public IP `/32`.
 - Do not commit real `terraform.tfvars`.
 - Use IAM roles instead of storing AWS credentials on EC2.
-- Destroy resources after portfolio testing to avoid cost.
+- Destroy resources when the environment is no longer needed to avoid cost.

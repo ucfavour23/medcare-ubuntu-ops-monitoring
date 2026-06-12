@@ -1,4 +1,4 @@
-# Recruiter Summary
+# Project Summary
 
 ## Project
 
@@ -6,7 +6,7 @@ MedCare Ubuntu Operations & Monitoring Platform
 
 ## Scenario
 
-A healthcare company needs operational visibility for Ubuntu servers that host internal applications. This project shows how I would provision, monitor, alert, and document a Linux operations environment in AWS.
+A healthcare company needs operational visibility for Ubuntu servers that host internal applications. This project provisions, monitors, alerts, and documents a Linux operations environment in AWS.
 
 ## What I Built
 
@@ -29,7 +29,7 @@ A healthcare company needs operational visibility for Ubuntu servers that host i
 - Screenshots for dashboard, API output, Terraform, Docker, AWS alarms, SNS, EC2 service status, and CI workflow
 - HTTPS-ready deployment path using Caddy reverse proxy and Let's Encrypt when a domain is configured
 
-## Roles This Supports
+## Relevant Roles
 
 - Cloud Support Engineer
 - Linux Systems Administrator

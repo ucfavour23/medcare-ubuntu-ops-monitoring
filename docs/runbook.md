@@ -69,7 +69,7 @@ journalctl -u medcare-dashboard --since "30 minutes ago"
 
 ## Browser Shows Not Secure
 
-`http://<public-ip>:5000` is expected to show as not secure because it is plain HTTP. Use a domain-backed HTTPS deployment for public recruiter demos.
+`http://<public-ip>:5000` is expected to show as not secure because it is plain HTTP. Use a domain-backed HTTPS deployment for public access.
 
 1. Point a DNS A record such as `ops.example.com` to the EC2 public IP.
 2. Set `dashboard_domain` and `certificate_email` in `terraform.tfvars`.

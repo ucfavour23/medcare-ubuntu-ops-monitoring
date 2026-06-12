@@ -31,7 +31,7 @@ key_name    = "your-existing-keypair-name"
 ssh_cidr    = "YOUR_PUBLIC_IP/32"
 ```
 
-For a secure recruiter-facing dashboard, also configure a domain:
+For a secure public dashboard, also configure a domain:
 
 ```hcl
 dashboard_domain      = "ops.example.com"
@@ -77,7 +77,7 @@ If `dashboard_domain` is set, open the HTTPS Terraform output:
 terraform output dashboard_url
 ```
 
-## 6. Capture Portfolio Evidence
+## 6. Capture Operational Evidence
 
 Save these screenshots in `docs/screenshots/`:
 
