@@ -119,14 +119,16 @@ cp terraform.tfvars.example terraform.tfvars
 
 ```hcl
 aws_region    = "us-east-1"
-alert_email   = "your-email@example.com"
-key_name      = "your-existing-keypair-name"
-ssh_cidr      = "YOUR_PUBLIC_IP/32"
+alert_email   = "ucfavour23@gmail.com"
+key_name      = null
+ssh_cidr      = "102.88.113.209/32"
 
 # Optional for a secure public dashboard.
-dashboard_domain   = "ops.example.com"
-certificate_email = "your-email@example.com"
+dashboard_domain   = "ops.ucfavourcloud.online"
+certificate_email = "ucfavour23@gmail.com"
 ```
+
+`key_name = null` is intentional for this build because AWS Systems Manager Session Manager can be used for server access instead of an SSH key pair. Update `ssh_cidr` if your public IP changes.
 
 3. Deploy infrastructure:
 
