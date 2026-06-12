@@ -26,54 +26,18 @@ The platform combines AWS infrastructure, Linux automation, CloudWatch monitorin
 
 ```mermaid
 flowchart TD
-    engineer["Cloud operations engineer"]
+    github["GitHub Repository"]
+    terraform["Terraform"]
+    aws["AWS Ubuntu Server"]
+    monitoring["Health Checks and CloudWatch"]
+    dashboard["Operations Dashboard"]
+    alerts["SNS Email Alerts"]
 
-    subgraph source["Source control and validation"]
-        repo["GitHub repository"]
-        ci["GitHub Actions: tests, Terraform validation, Docker build"]
-    end
-
-    subgraph provisioning["Infrastructure provisioning"]
-        tf["Terraform"]
-        ec2["Ubuntu EC2 instance"]
-        iam["IAM instance role: SSM and CloudWatch permissions"]
-        sg["Security group: SSH, HTTP, HTTPS"]
-        sns["SNS email topic"]
-    end
-
-    subgraph runtime["Server runtime"]
-        cwa["CloudWatch Agent"]
-        scripts["Bash health checks: cron and log cleanup"]
-        logs["Health JSON and log files"]
-        app["Flask operations dashboard: Gunicorn service"]
-        caddy["Caddy reverse proxy: optional HTTPS"]
-    end
-
-    subgraph monitoring["Monitoring and alerting"]
-        metrics["CloudWatch metrics"]
-        alarms["CloudWatch alarms: CPU, memory, disk, status checks"]
-        email["Operations email alerts"]
-    end
-
-    engineer --> repo
-    repo --> ci
-    engineer --> tf
-    tf --> ec2
-    tf --> iam
-    tf --> sg
-    tf --> sns
-    tf --> alarms
-    iam --> ec2
-    sg --> ec2
-    ec2 --> cwa
-    ec2 --> scripts
-    scripts --> logs
-    logs --> app
-    caddy --> app
-    cwa --> metrics
-    metrics --> alarms
-    alarms --> sns
-    sns --> email
+    github --> terraform
+    terraform --> aws
+    aws --> monitoring
+    monitoring --> dashboard
+    monitoring --> alerts
 ```
 
 ## Features
