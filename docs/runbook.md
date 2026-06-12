@@ -40,15 +40,51 @@ sudo systemctl restart <service>
 
 ## Dashboard Not Loading
 
-1. Confirm security group allows your IP to port `5000`.
-2. Check service status:
+1. Confirm the expected access path:
+
+```bash
+terraform -chdir=terraform output dashboard_url
+```
+
+2. If using HTTPS, confirm Caddy is running:
+
+```bash
+sudo systemctl status caddy
+sudo journalctl -u caddy --since "30 minutes ago"
+```
+
+3. If using temporary HTTP by IP, confirm the security group allows your IP to port `5000`.
+
+4. Check service status:
 
 ```bash
 sudo systemctl status medcare-dashboard
 ```
 
-3. Review app logs:
+5. Review app logs:
 
 ```bash
 journalctl -u medcare-dashboard --since "30 minutes ago"
+```
+
+## Browser Shows Not Secure
+
+`http://<public-ip>:5000` is expected to show as not secure because it is plain HTTP. Use a domain-backed HTTPS deployment for public recruiter demos.
+
+1. Point a DNS A record such as `ops.example.com` to the EC2 public IP.
+2. Set `dashboard_domain` and `certificate_email` in `terraform.tfvars`.
+3. Run `terraform apply`.
+4. Open the `https://` URL from `terraform output dashboard_url`.
+
+Confirm Caddy has a certificate:
+
+```bash
+sudo caddy list-certificates
+```
+
+Confirm the Flask app is behind the proxy:
+
+```bash
+curl -I http://127.0.0.1:5000
+curl -I https://YOUR_DOMAIN
 ```

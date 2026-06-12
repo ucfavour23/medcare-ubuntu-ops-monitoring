@@ -43,7 +43,7 @@
             <strong>{{ "%.1f"|format(metric.value) }}{{ metric.unit }}</strong>
           </div>
           <div class="bar" aria-hidden="true">
-            <span style="width: {{ metric.value }}%"></span>
+            <span style="width: {{ metric.bar_value }}%"></span>
           </div>
           <small>{{ metric.status|title }}</small>
         </article>

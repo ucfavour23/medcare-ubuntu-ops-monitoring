@@ -1,6 +1,8 @@
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfplan
+tfplan
 *.tfvars
 !terraform.tfvars.example
 crash.log
@@ -16,11 +18,14 @@ pytest-cache-files-*/
 .venv/
 venv/
 .env
+.vscode/
+.docker-tmp/
 
 *.log
 reports/
 app/data/*.json
 !app/data/.gitkeep
+!app/data/sample-health.json
 
 .DS_Store
 Thumbs.db

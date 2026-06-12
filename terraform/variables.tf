@@ -31,18 +31,56 @@ variable "key_name" {
 variable "ssh_cidr" {
   description = "CIDR block allowed to SSH. Replace with your public IP /32."
   type        = string
-  default     = "0.0.0.0/0"
+  default     = "127.0.0.1/32"
+
+  validation {
+    condition     = can(cidrhost(var.ssh_cidr, 0)) && var.ssh_cidr != "0.0.0.0/0"
+    error_message = "ssh_cidr must be a valid CIDR block and must not be 0.0.0.0/0. Use your public IP with /32."
+  }
 }
 
 variable "alert_email" {
   description = "Email address that receives SNS alerts."
   type        = string
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
+    error_message = "alert_email must be a valid email address."
+  }
 }
 
 variable "app_port" {
   description = "Dashboard application port."
   type        = number
   default     = 5000
+
+  validation {
+    condition     = var.app_port >= 1024 && var.app_port <= 65535
+    error_message = "app_port must be between 1024 and 65535."
+  }
+}
+
+variable "dashboard_domain" {
+  description = "Optional DNS name for HTTPS dashboard access. Point this domain's A record to the EC2 public IP before applying."
+  type        = string
+  default     = ""
+}
+
+variable "certificate_email" {
+  description = "Optional email address used by Caddy/Let's Encrypt for HTTPS certificate notices."
+  type        = string
+  default     = ""
+}
+
+variable "public_dashboard_cidr" {
+  description = "CIDR block allowed to reach the HTTPS dashboard when dashboard_domain is set."
+  type        = string
+  default     = "0.0.0.0/0"
+
+  validation {
+    condition     = can(cidrhost(var.public_dashboard_cidr, 0))
+    error_message = "public_dashboard_cidr must be a valid CIDR block."
+  }
 }
 
 variable "repository_url" {

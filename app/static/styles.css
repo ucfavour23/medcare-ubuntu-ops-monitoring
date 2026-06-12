@@ -76,6 +76,10 @@ h1 {
   border-left-color: var(--red);
 }
 
+.status-card.warning {
+  border-left-color: var(--amber);
+}
+
 .status-card span,
 .system-strip span {
   color: var(--muted);

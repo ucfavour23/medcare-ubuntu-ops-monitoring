@@ -15,7 +15,7 @@ output "ssh_command" {
 
 output "dashboard_url" {
   description = "Monitoring dashboard URL."
-  value       = "http://${aws_instance.ubuntu_ops.public_ip}:${var.app_port}"
+  value       = var.dashboard_domain == "" ? "http://${aws_instance.ubuntu_ops.public_ip}:${var.app_port}" : "https://${var.dashboard_domain}"
 }
 
 output "sns_topic_arn" {

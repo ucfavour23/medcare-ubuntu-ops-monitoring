@@ -21,6 +21,14 @@ A healthcare company needs operational visibility for Ubuntu servers that host i
 - GitHub Actions validation pipeline
 - Deployment guide, architecture notes, and runbook
 
+## Verification Evidence
+
+- Python tests for dashboard health modeling
+- Terraform formatting and validation
+- Docker image build
+- Screenshots for dashboard, API output, Terraform, Docker, AWS alarms, SNS, EC2 service status, and CI workflow
+- HTTPS-ready deployment path using Caddy reverse proxy and Let's Encrypt when a domain is configured
+
 ## Roles This Supports
 
 - Cloud Support Engineer

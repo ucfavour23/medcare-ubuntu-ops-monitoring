@@ -59,22 +59,6 @@ resource "aws_security_group" "monitoring" {
   name        = "${var.project_name}-${var.environment}-sg"
   description = "MedCare Ubuntu monitoring access"
 
-  ingress {
-    description = "SSH administration"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.ssh_cidr]
-  }
-
-  ingress {
-    description = "Portfolio dashboard"
-    from_port   = var.app_port
-    to_port     = var.app_port
-    protocol    = "tcp"
-    cidr_blocks = [var.ssh_cidr]
-  }
-
   egress {
     description = "Outbound internet access"
     from_port   = 0
@@ -82,6 +66,27 @@ resource "aws_security_group" "monitoring" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_security_group_rule" "ssh" {
+  type              = "ingress"
+  description       = "SSH administration"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = [var.ssh_cidr]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+resource "aws_security_group_rule" "dashboard_direct" {
+  count             = var.dashboard_domain == "" ? 1 : 0
+  type              = "ingress"
+  description       = "Direct HTTP dashboard for temporary IP-based demos"
+  from_port         = var.app_port
+  to_port           = var.app_port
+  protocol          = "tcp"
+  cidr_blocks       = [var.ssh_cidr]
+  security_group_id = aws_security_group.monitoring.id
 }
 
 resource "aws_instance" "ubuntu_ops" {
@@ -94,10 +99,12 @@ resource "aws_instance" "ubuntu_ops" {
   user_data_replace_on_change = true
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    project_name   = var.project_name
-    app_port       = var.app_port
-    aws_region     = var.aws_region
-    repository_url = var.repository_url
+    project_name      = var.project_name
+    app_port          = var.app_port
+    aws_region        = var.aws_region
+    repository_url    = var.repository_url
+    dashboard_domain  = var.dashboard_domain
+    certificate_email = var.certificate_email
   })
 
   root_block_device {
@@ -110,6 +117,28 @@ resource "aws_instance" "ubuntu_ops" {
   tags = {
     Name = "${var.project_name}-${var.environment}-ubuntu-server"
   }
+}
+
+resource "aws_security_group_rule" "dashboard_http" {
+  count             = var.dashboard_domain == "" ? 0 : 1
+  type              = "ingress"
+  description       = "HTTP challenge and redirect for HTTPS dashboard"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = [var.public_dashboard_cidr]
+  security_group_id = aws_security_group.monitoring.id
+}
+
+resource "aws_security_group_rule" "dashboard_https" {
+  count             = var.dashboard_domain == "" ? 0 : 1
+  type              = "ingress"
+  description       = "HTTPS dashboard"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = [var.public_dashboard_cidr]
+  security_group_id = aws_security_group.monitoring.id
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {

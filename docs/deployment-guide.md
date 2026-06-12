@@ -31,6 +31,16 @@ key_name    = "your-existing-keypair-name"
 ssh_cidr    = "YOUR_PUBLIC_IP/32"
 ```
 
+For a secure recruiter-facing dashboard, also configure a domain:
+
+```hcl
+dashboard_domain      = "ops.example.com"
+certificate_email    = "your-email@example.com"
+public_dashboard_cidr = "0.0.0.0/0"
+```
+
+Create an A record for `dashboard_domain` that points to the EC2 public IP. A raw IP address on port `5000` will always show as not secure because it uses HTTP and cannot receive a normal trusted browser certificate.
+
 ## 3. Deploy Infrastructure
 
 ```bash
@@ -57,10 +67,30 @@ chmod +x scripts/*.sh
 ```bash
 sudo systemctl status amazon-cloudwatch-agent
 sudo systemctl status medcare-dashboard
+sudo systemctl status caddy
 sudo tail -f /var/log/medcare-monitoring/health-check.log
 ```
 
-## 6. Destroy When Finished
+If `dashboard_domain` is set, open the HTTPS Terraform output:
+
+```bash
+terraform output dashboard_url
+```
+
+## 6. Capture Portfolio Evidence
+
+Save these screenshots in `docs/screenshots/`:
+
+- `terraform-apply.png`
+- `cloudwatch-alarms.png`
+- `sns-email-confirmation.png`
+- `github-actions-ci.png`
+- `ec2-dashboard-live.png`
+- `ec2-systemd-status.png`
+
+See `docs/screenshots.md` for the exact evidence checklist.
+
+## 7. Destroy When Finished
 
 ```bash
 cd terraform

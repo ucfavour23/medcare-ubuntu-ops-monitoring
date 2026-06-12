@@ -5,18 +5,39 @@ PROJECT_NAME="${project_name}"
 APP_PORT="${app_port}"
 AWS_REGION="${aws_region}"
 REPOSITORY_URL="${repository_url}"
+DASHBOARD_DOMAIN="${dashboard_domain}"
+CERTIFICATE_EMAIL="${certificate_email}"
 APP_DIR="/opt/medcare-monitoring"
 
 apt-get update -y
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  amazon-cloudwatch-agent \
   awscli \
+  apt-transport-https \
   cron \
+  curl \
+  debian-keyring \
+  debian-archive-keyring \
   docker.io \
   git \
+  gnupg \
   jq \
   python3-pip \
   python3-venv
+
+if [ -n "$DASHBOARD_DOMAIN" ]; then
+  curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/gpg.key" \
+    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt" \
+    | tee /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update -y
+  DEBIAN_FRONTEND=noninteractive apt-get install -y caddy
+fi
+
+curl -fsSL \
+  "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb" \
+  -o /tmp/amazon-cloudwatch-agent.deb
+DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/amazon-cloudwatch-agent.deb
+rm -f /tmp/amazon-cloudwatch-agent.deb
 
 systemctl enable --now docker
 
@@ -82,9 +103,15 @@ $PROJECT_NAME bootstrap completed.
 AWS region: $AWS_REGION
 Dashboard port: $APP_PORT
 Repository: $REPOSITORY_URL
+Dashboard domain: $DASHBOARD_DOMAIN
 EOF
 
 if [ -n "$REPOSITORY_URL" ]; then
+  DASHBOARD_BIND_HOST="0.0.0.0"
+  if [ -n "$DASHBOARD_DOMAIN" ]; then
+    DASHBOARD_BIND_HOST="127.0.0.1"
+  fi
+
   rm -rf "$APP_DIR/repo"
   git clone --depth 1 "$REPOSITORY_URL" "$APP_DIR/repo"
   chown -R ubuntu:ubuntu "$APP_DIR/repo"
@@ -107,13 +134,48 @@ User=ubuntu
 WorkingDirectory=$APP_DIR/repo/app
 Environment=HEALTH_DATA_PATH=/var/log/medcare-monitoring/latest-health.json
 Environment=REPORT_DIR=/var/reports/medcare-monitoring
-ExecStart=$APP_DIR/.venv/bin/gunicorn --bind 0.0.0.0:$APP_PORT app:app
+ExecStart=$APP_DIR/.venv/bin/gunicorn --bind $DASHBOARD_BIND_HOST:$APP_PORT app:app
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 SERVICE
+
+  if [ -n "$DASHBOARD_DOMAIN" ]; then
+    if [ -n "$CERTIFICATE_EMAIL" ]; then
+      cat >/etc/caddy/Caddyfile <<CADDY
+{
+  email $CERTIFICATE_EMAIL
+}
+
+$DASHBOARD_DOMAIN {
+  encode gzip
+  reverse_proxy 127.0.0.1:$APP_PORT
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy no-referrer
+  }
+}
+CADDY
+    else
+      cat >/etc/caddy/Caddyfile <<CADDY
+$DASHBOARD_DOMAIN {
+  encode gzip
+  reverse_proxy 127.0.0.1:$APP_PORT
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy no-referrer
+  }
+}
+CADDY
+    fi
+
+    systemctl enable --now caddy
+    systemctl reload caddy
+  fi
 
   systemctl daemon-reload
   systemctl enable --now medcare-dashboard

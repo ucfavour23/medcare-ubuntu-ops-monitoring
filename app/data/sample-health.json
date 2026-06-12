@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-06-12T09:00:00Z",
+  "hostname": "medcare-ubuntu-demo",
+  "cpu_used_percent": 24.8,
+  "memory_used_percent": 58.3,
+  "disk_used_percent": 41,
+  "load_average": "0.28,0.31,0.35",
+  "services": {
+    "ssh": "running",
+    "cron": "running",
+    "docker": "running"
+  }
+}
