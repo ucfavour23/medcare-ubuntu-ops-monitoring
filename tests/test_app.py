@@ -1,4 +1,8 @@
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 import app.app as app_module
 from app.app import build_dashboard_model, status_for
